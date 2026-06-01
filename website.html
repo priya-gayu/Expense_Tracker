@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G2 Sight AI — Smart Expense Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#06080f;--bg2:#0c0f1a;--bg3:#111525;--card:#161c2e;--card2:#1c2338;
+  --border:#232840;--border2:#2d3557;
+  --primary:#4f8eff;--primary2:#6ba3ff;--primaryglow:rgba(79,142,255,0.15);
+  --accent:#ff6b6b;--accent2:#ffd93d;--green:#06d6a0;--purple:#a855f7;--orange:#fb923c;
+  --text:#e8eaf6;--text2:#9ba3c7;--text3:#5a6285;
+  --font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;
+  --r:12px;--r2:18px;--r3:24px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ==================== AUTH ==================== */
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.auth-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% -20%,rgba(79,142,255,0.12) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(168,85,247,0.08) 0%,transparent 60%)}
+.auth-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.3}
+.auth-box{position:relative;z-index:2;width:100%;max-width:420px;padding:20px}
+.auth-logo{text-align:center;margin-bottom:32px}
+.auth-logo-icon{width:64px;height:64px;background:linear-gradient(135deg,var(--primary),var(--purple));border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;box-shadow:0 0 40px rgba(79,142,255,0.3)}
+.auth-logo h1{font-size:28px;font-weight:800;letter-spacing:-0.5px}
+.auth-logo h1 span{color:var(--primary)}
+.auth-logo p{color:var(--text2);font-size:13px;margin-top:4px}
+.auth-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:32px;backdrop-filter:blur(20px)}
+.auth-tabs{display:flex;background:var(--bg2);border-radius:var(--r);padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;color:var(--text2);transition:all 0.2s}
+.auth-tab.active{background:var(--primary);color:#fff}
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;color:var(--text);font-size:15px;font-family:var(--font);outline:none;transition:border-color 0.2s}
+.form-input:focus{border-color:var(--primary)}
+.form-input::placeholder{color:var(--text3)}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--primary),#6b4fff);color:#fff;border:none;border-radius:var(--r);padding:14px;font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all 0.2s;letter-spacing:0.3px}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 25px rgba(79,142,255,0.35)}
+.btn-primary:active{transform:translateY(0)}
+.demo-hint{text-align:center;margin-top:12px;font-size:12px;color:var(--text3)}
+.demo-hint span{color:var(--primary);cursor:pointer}
+.sms-feed{margin-top:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px}
+.sms-feed-title{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sms-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.sms-item{font-family:var(--mono);font-size:10px;color:var(--text2);padding:6px 8px;background:var(--bg3);border-radius:6px;margin-bottom:6px;border-left:2px solid var(--primary)}
+
+/* ==================== MAIN APP ==================== */
+#app{display:none;min-height:100vh;flex-direction:column}
+#app.visible{display:flex}
+
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topbar-logo{font-size:16px;font-weight:800;letter-spacing:-0.5px}
+.topbar-logo span{color:var(--primary)}
+.topbar-nav{display:flex;gap:4px;margin-left:auto}
+.nav-btn{padding:7px 14px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:var(--font);transition:all 0.2s}
+.nav-btn:hover{background:var(--bg3);color:var(--text)}
+.nav-btn.active{background:var(--primaryglow);color:var(--primary);border:1px solid rgba(79,142,255,0.2)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--bg3);border-radius:50px;border:1px solid var(--border);cursor:pointer;margin-left:8px;transition:all 0.2s;position:relative}
+.user-chip:hover{border-color:var(--primary);background:rgba(79,142,255,0.08)}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.user-name{font-size:13px;font-weight:500}
+.logout-btn{padding:6px 12px;background:rgba(255,107,107,0.1);border:1px solid rgba(255,107,107,0.2);border-radius:var(--r);color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--font);transition:all 0.2s}
+.logout-btn:hover{background:rgba(255,107,107,0.2)}
+
+/* CONTENT */
+.content{flex:1;padding:20px;max-width:1200px;margin:0 auto;width:100%}
+
+/* PAGE */
+.page{display:none}
+.page.active{display:block;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+
+/* GRID */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* STAT CARDS */
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:all 0.25s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,0,0,0.3)}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:0.07;transform:translate(20px,-20px)}
+.stat-card.blue::before{background:var(--primary)}
+.stat-card.red::before{background:var(--accent)}
+.stat-card.green::before{background:var(--green)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-label{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px}
+.stat-value{font-size:28px;font-weight:800;margin:6px 0 2px;letter-spacing:-1px}
+.stat-value.blue{color:var(--primary)}
+.stat-value.red{color:var(--accent)}
+.stat-value.green{color:var(--green)}
+.stat-value.purple{color:var(--purple)}
+.stat-sub{font-size:12px;color:var(--text2)}
+.stat-icon{position:absolute;top:16px;right:16px;font-size:22px;opacity:0.8}
+.stat-trend{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:20px;margin-top:6px;font-weight:600}
+.stat-trend.up{background:rgba(6,214,160,0.12);color:var(--green)}
+.stat-trend.down{background:rgba(255,107,107,0.12);color:var(--accent)}
+
+/* TRANSACTIONS TABLE */
+.tx-table{width:100%;border-collapse:collapse}
+.tx-table th{text-align:left;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+.tx-table td{padding:12px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
+.tx-table tr:last-child td{border-bottom:none}
+.tx-table tr:hover td{background:rgba(255,255,255,0.02)}
+.tx-table tr{cursor:pointer;transition:background 0.15s}
+.cat-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.tx-amount{font-weight:700;font-family:var(--mono);font-size:14px}
+.tx-amount.debit{color:var(--accent)}
+.tx-amount.credit{color:var(--green)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;backdrop-filter:blur(4px)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--card2);border:1px solid var(--border2);border-radius:var(--r3);padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;transform:translateY(20px);transition:transform 0.25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s}
+.modal-close:hover{background:var(--border);color:var(--text)}
+
+/* DETAIL PANEL */
+.detail-section{margin-bottom:20px}
+.detail-section h4{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border-bottom:none}
+.detail-key{font-size:13px;color:var(--text2)}
+.detail-val{font-size:13px;font-weight:600}
+.anomaly-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(255,107,107,0.12);color:var(--accent);border:1px solid rgba(255,107,107,0.2)}
+.normal-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(6,214,160,0.12);color:var(--green);border:1px solid rgba(6,214,160,0.2)}
+.ai-insight-box{background:linear-gradient(135deg,rgba(79,142,255,0.08),rgba(168,85,247,0.08));border:1px solid rgba(79,142,255,0.2);border-radius:var(--r2);padding:16px;margin-top:12px}
+.ai-insight-box p{font-size:13px;color:var(--text2);line-height:1.7}
+
+/* CHART CONTAINERS */
+.chart-wrap{position:relative;height:220px;width:100%}
+
+/* ALERTS */
+.alert-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:var(--r);margin-bottom:10px}
+.alert-icon-wrap{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.alert-content h4{font-size:13px;font-weight:700;margin-bottom:3px}
+.alert-content p{font-size:12px;color:var(--text2);line-height:1.5}
+.alert-time{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* GAMIFICATION */
+.streak-card{background:linear-gradient(135deg,#1a1530,#1c2338);border:1px solid rgba(255,217,61,0.2);border-radius:var(--r2);padding:20px;text-align:center;position:relative;overflow:hidden}
+.streak-fire{font-size:48px;margin-bottom:8px;display:block}
+.streak-num{font-size:48px;font-weight:900;color:var(--accent2);font-family:var(--mono);letter-spacing:-2px}
+.streak-label{font-size:13px;color:var(--text2);margin-top:4px}
+.badge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.badge-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.badge-item.earned{border-color:rgba(255,217,61,0.3);background:rgba(255,217,61,0.05)}
+.badge-emoji{font-size:24px;display:block;margin-bottom:4px}
+.badge-name{font-size:10px;color:var(--text2);font-weight:600}
+.badge-item.earned .badge-name{color:var(--accent2)}
+.badge-item:not(.earned){opacity:0.4}
+.progress-bar-wrap{background:var(--bg2);border-radius:20px;height:8px;overflow:hidden;margin:6px 0}
+.progress-bar-fill{height:100%;border-radius:20px;transition:width 0.6s ease}
+
+/* SMS */
+.sms-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;border-left:3px solid var(--primary)}
+.sms-card:hover{border-color:var(--primary);background:rgba(79,142,255,0.05)}
+.sms-raw{font-family:var(--mono);font-size:11px;color:var(--text2);margin-bottom:8px;line-height:1.5}
+.sms-extracted{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.sms-tag{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+
+/* ADD EXPENSE */
+.cat-grid-select{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+.cat-opt{background:var(--bg2);border:2px solid var(--border);border-radius:var(--r);padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.2s}
+.cat-opt.sel{border-color:var(--primary);background:rgba(79,142,255,0.1)}
+.cat-opt .ico{font-size:20px;display:block;margin-bottom:4px}
+.cat-opt .lbl{font-size:10px;color:var(--text2);font-weight:600}
+.cat-opt.sel .lbl{color:var(--primary)}
+
+/* FAB */
+.fab{position:fixed;bottom:28px;right:28px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#6b4fff);border:none;color:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(79,142,255,0.4);z-index:200;transition:all 0.2s}
+.fab:hover{transform:scale(1.08);box-shadow:0 12px 40px rgba(79,142,255,0.5)}
+.fab:active{transform:scale(0.95)}
+
+/* CAT DETAIL */
+.cat-detail-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.cat-detail-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);margin-bottom:16px;transition:all 0.2s}
+.back-btn:hover{color:var(--text);border-color:var(--border2)}
+
+/* ==================== PROFILE PANEL ==================== */
+.profile-panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:600;opacity:0;pointer-events:none;transition:opacity 0.3s;backdrop-filter:blur(4px)}
+.profile-panel-overlay.open{opacity:1;pointer-events:all}
+.profile-panel{position:fixed;top:0;right:-420px;width:420px;height:100vh;background:var(--card2);border-left:1px solid var(--border2);z-index:601;overflow-y:auto;transition:right 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column}
+.profile-panel.open{right:0}
+.profile-panel-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card2);z-index:1}
+.profile-panel-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.pp-close{width:32px;height:32px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s;flex-shrink:0}
+.pp-close:hover{background:var(--border);color:var(--text)}
+
+/* Profile hero */
+.pp-hero{padding:28px 24px;text-align:center;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(79,142,255,0.06) 0%,transparent 100%)}
+.pp-avatar-big{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:800;margin:0 auto 16px;box-shadow:0 0 0 4px rgba(79,142,255,0.2),0 0 30px rgba(79,142,255,0.15);position:relative}
+.pp-online-dot{position:absolute;bottom:4px;right:4px;width:14px;height:14px;background:var(--green);border-radius:50%;border:3px solid var(--card2)}
+.pp-name{font-size:22px;font-weight:800;letter-spacing:-0.3px}
+.pp-email{font-size:13px;color:var(--text2);margin-top:4px}
+.pp-since{font-size:11px;color:var(--text3);margin-top:4px}
+.pp-badges-row{display:flex;justify-content:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.pp-badge-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700}
+
+/* Profile stats row */
+.pp-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.pp-stat{background:var(--card2);padding:16px 12px;text-align:center}
+.pp-stat-val{font-size:20px;font-weight:800}
+.pp-stat-label{font-size:10px;color:var(--text2);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* Profile sections */
+.pp-section{padding:20px 24px;border-bottom:1px solid var(--border)}
+.pp-section-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px}
+.pp-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(35,40,64,0.6)}
+.pp-row:last-child{border-bottom:none}
+.pp-row-label{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.pp-row-label span{font-size:15px}
+.pp-row-val{font-size:13px;font-weight:600;color:var(--text)}
+.pp-row-val.green{color:var(--green)}
+.pp-row-val.accent{color:var(--accent)}
+.pp-row-val.primary{color:var(--primary)}
+.pp-row-val.accent2{color:var(--accent2)}
+
+/* Toggle switch */
+.pp-toggle{width:40px;height:22px;border-radius:11px;background:var(--border2);position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0}
+.pp-toggle.on{background:var(--primary)}
+.pp-toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.pp-toggle.on::after{left:21px}
+
+/* Edit field */
+.pp-edit-input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;width:100%;margin-top:6px;transition:border-color 0.2s}
+.pp-edit-input:focus{border-color:var(--primary)}
+
+/* Budget progress in profile */
+.pp-budget-bar-wrap{background:var(--bg3);border-radius:20px;height:6px;overflow:hidden;flex:1;margin-left:10px}
+.pp-budget-bar-fill{height:100%;border-radius:20px}
+
+/* Linked account card */
+.pp-linked-card{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;transition:border-color 0.2s;cursor:default}
+.pp-linked-card:hover{border-color:var(--border2)}
+.pp-linked-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pp-linked-info{flex:1}
+.pp-linked-name{font-size:13px;font-weight:600}
+.pp-linked-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.pp-primary-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(79,142,255,0.12);color:var(--primary);font-weight:700}
+
+/* Activity log */
+.pp-activity-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(35,40,64,0.6)}
+.pp-activity-item:last-child{border-bottom:none}
+.pp-activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pp-activity-text{font-size:12px;color:var(--text2);flex:1}
+.pp-activity-time{font-size:11px;color:var(--text3)}
+
+/* Danger zone */
+.pp-danger-btn{width:100%;padding:12px;background:rgba(255,107,107,0.08);border:1px solid rgba(255,107,107,0.2);border-radius:var(--r);color:var(--accent);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all 0.2s;margin-bottom:8px}
+.pp-danger-btn:hover{background:rgba(255,107,107,0.15)}
+
+/* Profile edit mode */
+.pp-edit-btn{padding:8px 18px;background:rgba(79,142,255,0.1);border:1px solid rgba(79,142,255,0.25);border-radius:50px;color:var(--primary);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all 0.2s}
+.pp-edit-btn:hover{background:rgba(79,142,255,0.2)}
+.pp-save-btn{padding:8px 18px;background:var(--primary);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all 0.2s;display:none}
+.pp-save-btn:hover{background:var(--primary2)}
+
+/* ==================== UTILS ==================== */
+@media(max-width:768px){
+  .grid4{grid-template-columns:1fr 1fr}
+  .grid3{grid-template-columns:1fr}
+  .grid2{grid-template-columns:1fr}
+  .topbar-nav{display:none}
+  .content{padding:12px}
+  .modal{margin:16px;width:calc(100% - 32px)}
+  .profile-panel{width:100%;right:-100%}
+}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.tag-info{background:rgba(79,142,255,0.12);color:var(--primary2);border:1px solid rgba(79,142,255,0.2)}
+.tag-warn{background:rgba(255,107,107,0.12);color:#ff9a9a;border:1px solid rgba(255,107,107,0.2)}
+.tag-ok{background:rgba(6,214,160,0.12);color:var(--green);border:1px solid rgba(6,214,160,0.2)}
+.section-gap{margin-bottom:20px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.flex-center{display:flex;align-items:center;gap:8px}
+.btn-sm{padding:7px 14px;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:var(--font);transition:all 0.2s}
+.btn-sm:hover{background:var(--bg3);color:var(--text)}
+.btn-sm.primary{background:var(--primaryglow);border-color:rgba(79,142,255,0.3);color:var(--primary)}
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="authScreen">
+  <div class="auth-bg"></div>
+  <div class="auth-grid"></div>
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">💡</div>
+      <h1>G2<span>Sight</span> AI</h1>
+      <p>Smart expense tracking powered by machine learning</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuth('login')">Sign In</div>
+        <div class="auth-tab" onclick="switchAuth('register')">Register</div>
+      </div>
+      <div id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="loginEmail" type="email" placeholder="you@example.com" value="demo@g2sight.ai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="loginPass" type="password" placeholder="••••••••" value="demo1234">
+        </div>
+        <button class="btn-primary" onclick="doLogin()" id="loginBtn">Sign In →</button>
+        <div class="demo-hint">Use demo: <span onclick="fillDemo()">demo@g2sight.ai / demo1234</span></div>
+      </div>
+      <div id="registerForm" style="display:none">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" id="regName" type="text" placeholder="Your full name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="regEmail" type="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="regPass" type="password" placeholder="Minimum 8 characters">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monthly Budget (₹)</label>
+          <input class="form-input" id="regBudget" type="number" placeholder="50000">
+        </div>
+        <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+      </div>
+    </div>
+    <div class="sms-feed" style="margin-top:16px">
+      <div class="sms-feed-title"><div class="sms-dot"></div> Live SMS Parsing Simulation</div>
+      <div id="smsFeedLive"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">G2<span>Sight</span> AI</div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+      <button class="nav-btn" onclick="showPage('transactions',this)">💳 Transactions</button>
+      <button class="nav-btn" onclick="showPage('analytics',this)">📈 Analytics</button>
+      <button class="nav-btn" onclick="showPage('sms',this)">📱 SMS Data</button>
+      <button class="nav-btn" onclick="showPage('alerts',this)">🔔 Alerts</button>
+      <button class="nav-btn" onclick="showPage('gamification',this)">🏆 Rewards</button>
+    </div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <div class="user-chip" id="userChip" onclick="openProfilePanel()" title="View Profile">
+        <div class="user-avatar" id="userInitials">D</div>
+        <span class="user-name" id="userNameDisplay">Demo User</span>
+        <span style="font-size:10px;color:var(--text3);margin-left:2px">▾</span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="flex-between section-gap">
+        <div>
+          <h2 style="font-size:22px;font-weight:800" id="dashGreeting">Good morning 👋</h2>
+          <p style="color:var(--text2);font-size:14px;margin-top:2px">Here's your financial overview</p>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--text3)">April 2026</div>
+          <div style="font-size:13px;font-weight:600;color:var(--primary)" id="budgetRemaining">Loading...</div>
+        </div>
+      </div>
+      <div class="grid4 section-gap" id="statCards"></div>
+      <div class="grid2 section-gap">
+        <div class="card">
+          <div class="card-title">📊 Monthly Spending Trend</div>
+          <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🍩 Category Breakdown</div>
+          <div class="chart-wrap"><canvas id="catChart"></canvas></div>
+        </div>
+      </div>
+      <div class="card-title" style="margin-bottom:12px">📂 Spending by Category — click to explore</div>
+      <div class="grid4 section-gap" id="catCards"></div>
+      <div class="card section-gap">
+        <div class="flex-between" style="margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">🕐 Recent Transactions</div>
+          <button class="btn-sm primary" onclick="showPage('transactions',document.querySelector('.nav-btn:nth-child(2)'))">View All</button>
+        </div>
+        <div id="recentTxList"></div>
+      </div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(79,142,255,0.06),rgba(168,85,247,0.06));border-color:rgba(79,142,255,0.2)">
+        <div class="card-title">🤖 AI Financial Summary</div>
+        <div id="aiSummary" style="font-size:14px;color:var(--text2);line-height:1.8"></div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="page" id="page-transactions">
+      <div class="flex-between section-gap">
+        <h2 style="font-size:20px;font-weight:800">All Transactions</h2>
+        <div class="flex-center">
+          <select id="txFilter" onchange="renderTransactions()" style="background:var(--card);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:var(--r);font-family:var(--font);font-size:13px;outline:none">
+            <option value="all">All Categories</option>
+            <option value="Food">Food</option>
+            <option value="Transport">Transport</option>
+            <option value="Shopping">Shopping</option>
+            <option value="Entertainment">Entertainment</option>
+            <option value="Health">Health</option>
+            <option value="Bills">Bills</option>
+            <option value="Education">Education</option>
+            <option value="Savings">Savings</option>
+          </select>
+          <button class="btn-sm primary" onclick="openAddModal()">+ Add</button>
+        </div>
+      </div>
+      <div class="card">
+        <div style="overflow-x:auto">
+          <table class="tx-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Source</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:20px">Analytics & Predictions</h2>
+      <div class="grid2 section-gap">
+        <div class="card"><div class="card-title">📅 Weekly Pattern</div><div class="chart-wrap"><canvas id="weekChart"></canvas></div></div>
+        <div class="card"><div class="card-title">🔮 30-Day Prediction (ML Model)</div><div class="chart-wrap"><canvas id="predChart"></canvas></div></div>
+      </div>
+      <div class="grid2 section-gap">
+        <div class="card"><div class="card-title">📊 Spending vs Budget</div><div class="chart-wrap"><canvas id="budgetChart"></canvas></div></div>
+        <div class="card"><div class="card-title">🧠 Anomaly Detection</div><div id="anomalyList"></div></div>
+      </div>
+      <div class="card section-gap" style="background:linear-gradient(135deg,rgba(168,85,247,0.06),rgba(79,142,255,0.06));border-color:rgba(168,85,247,0.2)">
+        <div class="card-title">🤖 ML Insights — Pandas + Scikit-learn Analysis</div>
+        <div id="mlInsights" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+      </div>
+    </div>
+
+    <!-- SMS -->
+    <div class="page" id="page-sms">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">SMS Transaction Extractor</h2>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Auto-extracted financial data from bank SMS messages using NLP parsing</p>
+      <div id="smsList"></div>
+    </div>
+
+    <!-- ALERTS -->
+    <div class="page" id="page-alerts">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:20px">Smart Alerts & Notifications</h2>
+      <div id="alertsList"></div>
+    </div>
+
+    <!-- GAMIFICATION -->
+    <div class="page" id="page-gamification">
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:20px">Rewards & Achievements</h2>
+      <div class="grid2 section-gap">
+        <div class="streak-card">
+          <span class="streak-fire">🔥</span>
+          <div class="streak-num" id="streakNum">7</div>
+          <div class="streak-label">Day Saving Streak</div>
+          <div style="margin-top:16px">
+            <div class="flex-between" style="margin-bottom:4px">
+              <span style="font-size:12px;color:var(--text2)">Next milestone: 14 days</span>
+              <span style="font-size:12px;color:var(--accent2)">50%</span>
+            </div>
+            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:50%;background:linear-gradient(90deg,var(--accent2),var(--orange))"></div></div>
+          </div>
+        </div>
+        <div class="card"><div class="card-title">🎯 Monthly Goals</div><div id="goalsList"></div></div>
+      </div>
+      <div class="card-title" style="margin-bottom:12px">🏅 Achievement Badges</div>
+      <div class="badge-grid" id="badgeGrid"></div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">📊 Saving Score</div>
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:64px;font-weight:900;background:linear-gradient(135deg,var(--primary),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:var(--mono)">742</div>
+          <div style="color:var(--text2);font-size:14px;margin-top:4px">out of 1000 — Silver Saver</div>
+          <div class="progress-bar-wrap" style="max-width:200px;margin:12px auto"><div class="progress-bar-fill" style="width:74%;background:linear-gradient(90deg,var(--primary),var(--purple))"></div></div>
+          <div style="font-size:12px;color:var(--text2);margin-top:8px">+28 points from last month 📈</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAT DETAIL -->
+    <div class="page" id="page-catdetail"><div id="catDetailContent"></div></div>
+    <!-- TX DETAIL -->
+    <div class="page" id="page-txdetail"><div id="txDetailContent"></div></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()" id="fabBtn" style="display:none" title="Add Expense">+</button>
+
+<!-- ADD EXPENSE MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Expense</div>
+      <button class="modal-close" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Amount (₹)</label>
+      <input class="form-input" id="addAmt" type="number" placeholder="0.00" inputmode="decimal">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" id="addDesc" type="text" placeholder="What did you spend on?">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <div class="cat-grid-select" id="catGridSelect">
+        <div class="cat-opt sel" data-cat="Food" onclick="selCat(this)"><span class="ico">🍔</span><span class="lbl">Food</span></div>
+        <div class="cat-opt" data-cat="Transport" onclick="selCat(this)"><span class="ico">🚗</span><span class="lbl">Transport</span></div>
+        <div class="cat-opt" data-cat="Shopping" onclick="selCat(this)"><span class="ico">🛍️</span><span class="lbl">Shopping</span></div>
+        <div class="cat-opt" data-cat="Entertainment" onclick="selCat(this)"><span class="ico">🎮</span><span class="lbl">Fun</span></div>
+        <div class="cat-opt" data-cat="Health" onclick="selCat(this)"><span class="ico">💊</span><span class="lbl">Health</span></div>
+        <div class="cat-opt" data-cat="Bills" onclick="selCat(this)"><span class="ico">💡</span><span class="lbl">Bills</span></div>
+        <div class="cat-opt" data-cat="Education" onclick="selCat(this)"><span class="ico">📚</span><span class="lbl">Study</span></div>
+        <div class="cat-opt" data-cat="Savings" onclick="selCat(this)"><span class="ico">🏦</span><span class="lbl">Savings</span></div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Date</label>
+      <input class="form-input" id="addDate" type="date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (optional)</label>
+      <input class="form-input" id="addNote" type="text" placeholder="Additional note...">
+    </div>
+    <button class="btn-primary" onclick="submitExpense()">Save Expense ✓</button>
+  </div>
+</div>
+
+<!-- TRANSACTION DETAIL MODAL -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Transaction Details</div>
+      <button class="modal-close" onclick="closeModal('txModal')">✕</button>
+    </div>
+    <div id="txModalContent"></div>
+  </div>
+</div>
+
+<!-- ==================== PROFILE PANEL ==================== -->
+<div class="profile-panel-overlay" id="profileOverlay" onclick="closeProfilePanel()"></div>
+<div class="profile-panel" id="profilePanel">
+  <div class="profile-panel-header">
+    <div class="profile-panel-title">👤 My Profile</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="pp-edit-btn" id="ppEditBtn" onclick="toggleProfileEdit()">✏️ Edit</button>
+      <button class="pp-save-btn" id="ppSaveBtn" onclick="saveProfileEdit()">💾 Save</button>
+      <button class="pp-close" onclick="closeProfilePanel()">✕</button>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="pp-hero">
+    <div class="pp-avatar-big" id="ppAvatarBig">
+      <span id="ppAvatarInitials">D</span>
+      <div class="pp-online-dot"></div>
+    </div>
+    <div class="pp-name" id="ppDisplayName">Demo User</div>
+    <div class="pp-email" id="ppDisplayEmail">demo@g2sight.ai</div>
+    <div class="pp-since" id="ppDisplaySince">Member since April 2026 • Chennai, India</div>
+    <div class="pp-badges-row">
+      <div class="pp-badge-chip" style="background:rgba(255,217,61,0.12);color:var(--accent2);border:1px solid rgba(255,217,61,0.2)">🔥 7-Day Streak</div>
+      <div class="pp-badge-chip" style="background:rgba(6,214,160,0.12);color:var(--green);border:1px solid rgba(6,214,160,0.2)">✅ Budget Master</div>
+      <div class="pp-badge-chip" style="background:rgba(79,142,255,0.12);color:var(--primary);border:1px solid rgba(79,142,255,0.2)">🤖 AI Pro</div>
+    </div>
+  </div>
+
+  <!-- QUICK STATS -->
+  <div class="pp-stats">
+    <div class="pp-stat">
+      <div class="pp-stat-val" style="color:var(--accent)" id="ppStatSpent">₹39k</div>
+      <div class="pp-stat-label">Spent</div>
+    </div>
+    <div class="pp-stat">
+      <div class="pp-stat-val" id="ppStatTx">15</div>
+      <div class="pp-stat-label">Transactions</div>
+    </div>
+    <div class="pp-stat">
+      <div class="pp-stat-val" style="color:var(--accent2)">742</div>
+      <div class="pp-stat-label">Score</div>
+    </div>
+  </div>
+
+  <!-- PERSONAL INFO -->
+  <div class="pp-section" id="ppPersonalSection">
+    <div class="pp-section-title">Personal Information</div>
+
+    <!-- View mode -->
+    <div id="ppViewMode">
+      <div class="pp-row"><div class="pp-row-label"><span>👤</span> Full Name</div><div class="pp-row-val" id="ppViewName">Demo User</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>📧</span> Email</div><div class="pp-row-val primary" id="ppViewEmail">demo@g2sight.ai</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>📱</span> Phone</div><div class="pp-row-val" id="ppViewPhone">+91 98765 43210</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>🎂</span> Date of Birth</div><div class="pp-row-val" id="ppViewDob">14 March 1995</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>📍</span> Location</div><div class="pp-row-val" id="ppViewLocation">Chennai, Tamil Nadu</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>💼</span> Occupation</div><div class="pp-row-val" id="ppViewOccupation">Software Engineer</div></div>
+      <div class="pp-row"><div class="pp-row-label"><span>🪙</span> PAN</div><div class="pp-row-val" id="ppViewPan" style="font-family:var(--mono);font-size:12px">ABCPK1234D</div></div>
+    </div>
+
+    <!-- Edit mode -->
+    <div id="ppEditMode" style="display:none">
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Full Name</label>
+        <input class="pp-edit-input" id="ppEditName" type="text" placeholder="Your full name">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Email</label>
+        <input class="pp-edit-input" id="ppEditEmail" type="email" placeholder="email@example.com">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Phone</label>
+        <input class="pp-edit-input" id="ppEditPhone" type="tel" placeholder="+91 XXXXX XXXXX">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Date of Birth</label>
+        <input class="pp-edit-input" id="ppEditDob" type="text" placeholder="DD Month YYYY">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Location</label>
+        <input class="pp-edit-input" id="ppEditLocation" type="text" placeholder="City, State">
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Occupation</label>
+        <input class="pp-edit-input" id="ppEditOccupation" type="text" placeholder="Job title">
+      </div>
+    </div>
+  </div>
+
+  <!-- FINANCIAL SUMMARY -->
+  <div class="pp-section">
+    <div class="pp-section-title">Financial Summary</div>
+    <div class="pp-row"><div class="pp-row-label"><span>💰</span> Monthly Budget</div><div class="pp-row-val primary" id="ppBudgetVal">₹50,000</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>💸</span> Total Spent</div><div class="pp-row-val accent" id="ppSpentVal">₹39,079</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>🏦</span> Total Saved</div><div class="pp-row-val green" id="ppSavedVal">₹5,000</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>⚠️</span> Anomalies</div><div class="pp-row-val accent" id="ppAnomalyVal">4 flagged</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>📊</span> Budget Used</div>
+      <div style="display:flex;align-items:center;gap:8px;min-width:130px">
+        <div class="pp-budget-bar-wrap"><div class="pp-budget-bar-fill" id="ppBudgetBar" style="width:78%;background:linear-gradient(90deg,var(--primary),var(--accent))"></div></div>
+        <span style="font-size:12px;font-weight:700;color:var(--accent)" id="ppBudgetPct">78%</span>
+      </div>
+    </div>
+    <!-- Category mini breakdown -->
+    <div style="margin-top:14px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Top Categories This Month</div>
+      <div id="ppCatBreakdown"></div>
+    </div>
+  </div>
+
+  <!-- LINKED ACCOUNTS -->
+  <div class="pp-section">
+    <div class="pp-section-title">Linked Bank Accounts</div>
+    <div class="pp-linked-card">
+      <div class="pp-linked-icon" style="background:rgba(6,214,160,0.12)">🏦</div>
+      <div class="pp-linked-info"><div class="pp-linked-name">State Bank of India</div><div class="pp-linked-sub">Savings A/c ••••4523 • Auto-sync ON</div></div>
+      <div class="pp-primary-tag">Primary</div>
+    </div>
+    <div class="pp-linked-card">
+      <div class="pp-linked-icon" style="background:rgba(79,142,255,0.12)">🏛️</div>
+      <div class="pp-linked-info"><div class="pp-linked-name">HDFC Bank</div><div class="pp-linked-sub">Credit Card ••••9923 • Statements sync</div></div>
+    </div>
+    <div class="pp-linked-card">
+      <div class="pp-linked-icon" style="background:rgba(255,107,107,0.12)">📱</div>
+      <div class="pp-linked-info"><div class="pp-linked-name">Axis Bank</div><div class="pp-linked-sub">Savings A/c ••••7823 • SMS sync</div></div>
+    </div>
+    <button style="width:100%;padding:10px;background:transparent;border:1px dashed var(--border2);border-radius:var(--r);color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font);margin-top:6px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">+ Link New Account</button>
+  </div>
+
+  <!-- PREFERENCES -->
+  <div class="pp-section">
+    <div class="pp-section-title">App Preferences</div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>🔔</span> Anomaly Alerts</div>
+      <div class="pp-toggle on" id="tog1" onclick="togglePref(this)"></div>
+    </div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>📊</span> Weekly Reports</div>
+      <div class="pp-toggle on" id="tog2" onclick="togglePref(this)"></div>
+    </div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>💡</span> Budget Warnings</div>
+      <div class="pp-toggle on" id="tog3" onclick="togglePref(this)"></div>
+    </div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>📱</span> SMS Auto-Parse</div>
+      <div class="pp-toggle on" id="tog4" onclick="togglePref(this)"></div>
+    </div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>🌙</span> Dark Mode</div>
+      <div class="pp-toggle on" id="tog5" onclick="togglePref(this)"></div>
+    </div>
+    <div class="pp-row">
+      <div class="pp-row-label"><span>🤖</span> AI Suggestions</div>
+      <div class="pp-toggle on" id="tog6" onclick="togglePref(this)"></div>
+    </div>
+  </div>
+
+  <!-- SECURITY -->
+  <div class="pp-section">
+    <div class="pp-section-title">Security</div>
+    <div class="pp-row"><div class="pp-row-label"><span>🔐</span> Two-Factor Auth</div><div class="pp-row-val green">Enabled</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>📍</span> Last Login</div><div class="pp-row-val" style="font-size:12px;color:var(--text2)">Today 9:41 AM • Chennai</div></div>
+    <div class="pp-row"><div class="pp-row-label"><span>🛡️</span> Data Encryption</div><div class="pp-row-val green">AES-256</div></div>
+    <div class="pp-row" style="cursor:pointer" onclick="alert('Feature coming soon!')"><div class="pp-row-label"><span>🔑</span> Change Password</div><div style="color:var(--primary);font-size:12px;font-weight:600">Update →</div></div>
+  </div>
+
+  <!-- RECENT ACTIVITY LOG -->
+  <div class="pp-section">
+    <div class="pp-section-title">Recent Activity</div>
+    <div id="ppActivityLog"></div>
+  </div>
+
+  <!-- DANGER ZONE -->
+  <div class="pp-section">
+    <div class="pp-section-title" style="color:var(--accent)">Account Actions</div>
+    <button class="pp-danger-btn" onclick="exportData()">📥 Export My Data (JSON)</button>
+    <button class="pp-danger-btn" onclick="doLogout()">🚪 Sign Out of All Devices</button>
+    <button class="pp-danger-btn" style="background:rgba(255,107,107,0.04);color:#ff9a9a80;border-color:rgba(255,107,107,0.08);font-size:12px" onclick="confirmDelete()">🗑️ Delete Account & All Data</button>
+  </div>
+</div>
+<!-- end profile panel -->
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────
+const BUDGET = 50000;
+const catConfig = {
+  Food:{icon:'🍔',color:'#ff6b6b',bg:'rgba(255,107,107,0.12)'},
+  Transport:{icon:'🚗',color:'#4f8eff',bg:'rgba(79,142,255,0.12)'},
+  Shopping:{icon:'🛍️',color:'#ffd93d',bg:'rgba(255,217,61,0.12)'},
+  Entertainment:{icon:'🎮',color:'#06d6a0',bg:'rgba(6,214,160,0.12)'},
+  Health:{icon:'💊',color:'#fb923c',bg:'rgba(251,146,60,0.12)'},
+  Bills:{icon:'💡',color:'#a855f7',bg:'rgba(168,85,247,0.12)'},
+  Education:{icon:'📚',color:'#38bdf8',bg:'rgba(56,189,248,0.12)'},
+  Savings:{icon:'🏦',color:'#06d6a0',bg:'rgba(6,214,160,0.12)'},
+  Other:{icon:'💼',color:'#9ba3c7',bg:'rgba(155,163,199,0.12)'}
+};
+
+let userData = {
+  name:'Gayathri Priya', email:'demo@g2sight.ai',
+  phone:'+91 98765 43210', dob:'14 March 1995',
+  location:'Chennai, Tamil Nadu', occupation:'Software Engineer',
+  pan:'ABCPK1234D', budget:BUDGET, streak:7,
+  memberSince:'April 2026'
+};
+
+let transactions = [
+  {id:1,date:'2026-04-01',desc:'Saravana Bhavan - Lunch',cat:'Food',amount:850,src:'SMS',note:'Family lunch',anomaly:false},
+  {id:2,date:'2026-04-01',desc:'Metro Card Recharge',cat:'Transport',amount:500,src:'Manual',note:'Monthly recharge',anomaly:false},
+  {id:3,date:'2026-04-02',desc:'Amazon - Electronics',cat:'Shopping',amount:12500,src:'SMS',note:'Headphones',anomaly:true},
+  {id:4,date:'2026-04-02',desc:'Netflix Subscription',cat:'Entertainment',amount:799,src:'SMS',note:'',anomaly:false},
+  {id:5,date:'2026-04-03',desc:'BESCOM Electricity Bill',cat:'Bills',amount:2200,src:'SMS',note:'April bill',anomaly:false},
+  {id:6,date:'2026-04-03',desc:'Apollo Pharmacy',cat:'Health',amount:1350,src:'Manual',note:'Medicines',anomaly:false},
+  {id:7,date:'2026-04-04',desc:'Zomato Order',cat:'Food',amount:480,src:'SMS',note:'',anomaly:false},
+  {id:8,date:'2026-04-04',desc:'Petrol - HP Pump',cat:'Transport',amount:3000,src:'SMS',note:'Full tank',anomaly:true},
+  {id:9,date:'2026-04-05',desc:'Udemy Course - ML',cat:'Education',amount:499,src:'Manual',note:'Machine Learning A-Z',anomaly:false},
+  {id:10,date:'2026-04-05',desc:'Weekend Dinner - Park Sheraton',cat:'Food',amount:4200,src:'SMS',note:'Birthday dinner',anomaly:true},
+  {id:11,date:'2026-04-06',desc:'SBI RD Installment',cat:'Savings',amount:5000,src:'SMS',note:'',anomaly:false},
+  {id:12,date:'2026-04-06',desc:'Swiggy - Breakfast',cat:'Food',amount:320,src:'SMS',note:'',anomaly:false},
+  {id:13,date:'2026-04-07',desc:'Ola Ride',cat:'Transport',amount:280,src:'SMS',note:'Office commute',anomaly:false},
+  {id:14,date:'2026-04-07',desc:'Myntra Sale Purchase',cat:'Shopping',amount:3600,src:'SMS',note:'Clothes',anomaly:false},
+  {id:15,date:'2026-04-08',desc:'HDFC Credit Card Bill',cat:'Bills',amount:15000,src:'SMS',note:'March dues',anomaly:true},
+];
+
+const smsMessages = [
+  {raw:'SBI: Your A/c XX4523 debited Rs.850 on 01-Apr-26 by Saravana Bhavan UPI. Avl Bal:Rs.42,350',extracted:{amount:850,merchant:'Saravana Bhavan',type:'UPI',account:'XX4523'},cat:'Food'},
+  {raw:'HDFC Bank: Rs.12,500 debited from A/c XX1289 on 02-Apr. Amazon Pay UPI ref 239847562. Call 1800 if not done by you.',extracted:{amount:12500,merchant:'Amazon',type:'UPI',account:'XX1289'},cat:'Shopping'},
+  {raw:'ICICI: Electricity bill of Rs.2,200 paid to BESCOM on 03-Apr-26. Txn ID: ICIC0034211. Avail Limit: Rs.85,000',extracted:{amount:2200,merchant:'BESCOM',type:'Bill Pay',account:'ICICI CC'},cat:'Bills'},
+  {raw:'Axis Bank Alert: Rs.3,000 debited from AC XX7823 at HP Petrol Pump on 04-Apr. Balance: Rs.31,200',extracted:{amount:3000,merchant:'HP Petrol Pump',type:'Card',account:'XX7823'},cat:'Transport'},
+  {raw:'SBI: Successful UPI payment of Rs.4,200 from A/c XX4523 to Park Sheraton Restaurant on 05-Apr-26',extracted:{amount:4200,merchant:'Park Sheraton',type:'UPI',account:'XX4523'},cat:'Food'},
+  {raw:'HDFC: Auto-debit of Rs.5,000 done on 06-Apr-26 for RD A/c. Next installment on 06-May-26.',extracted:{amount:5000,merchant:'HDFC RD',type:'Auto-debit',account:'RD Acct'},cat:'Savings'},
+  {raw:'Paytm: Rs.799 debited for Netflix subscription renewal on 02-Apr-26. UPI ref: PTM92834721',extracted:{amount:799,merchant:'Netflix',type:'UPI',account:'Paytm'},cat:'Entertainment'},
+  {raw:'HDFC: Credit Card bill payment of Rs.15,000 processed on 08-Apr-26. Due: Rs.0. Limit: Rs.2,00,000',extracted:{amount:15000,merchant:'HDFC CC Bill',type:'Bill Pay',account:'CC XX9923'},cat:'Bills'},
+];
+
+const alerts = [
+  {type:'danger',icon:'🚨',title:'Budget Alert — 78% Used',msg:'You have used ₹39,079 of your ₹50,000 monthly budget. Only ₹10,921 remaining for the rest of the month.',time:'Today, 9:41 AM'},
+  {type:'danger',icon:'⚠️',title:'Anomaly Detected — ₹12,500 Shopping',msg:'Amazon Electronics purchase of ₹12,500 is 3.4x higher than your average shopping transaction. Verify if this was intended.',time:'Apr 2, 11:30 AM'},
+  {type:'warn',icon:'🍔',title:'Food Budget Exceeded',msg:'Food spending this month is ₹5,850 — 17% over your usual ₹5,000 monthly food budget.',time:'Apr 5, 8:15 PM'},
+  {type:'warn',icon:'💳',title:'Large Transaction Detected',msg:'HDFC Credit Card bill of ₹15,000 was processed. ML model flagged this as unusually high compared to last 3 months.',time:'Apr 8, 10:00 AM'},
+  {type:'info',icon:'🏦',title:'Savings Goal On Track',msg:'You saved ₹5,000 this month via SBI RD. You are on track to reach your ₹60,000 annual savings goal!',time:'Apr 6, 10:15 AM'},
+  {type:'info',icon:'🔮',title:'AI Prediction Ready',msg:'Based on your current spending pattern, predicted month-end total is ₹47,200. That is within your budget.',time:'Today, 9:00 AM'},
+];
+
+const mlInsights = [
+  {icon:'📉',title:'Spending Trend',val:'↓ 12% vs last month',color:'var(--green)',desc:'Your ML model detected a downward spending trend — great financial discipline!'},
+  {icon:'🍔',title:'Top Category Risk',val:'Food — High',color:'var(--accent)',desc:'Food spending is 17% above average. Model suggests reducing dining out by 2 meals/week.'},
+  {icon:'🔮',title:'Month-End Prediction',val:'₹47,200',color:'var(--primary)',desc:'Random Forest regressor predicts ₹47,200 total spend by month end with 89% confidence.'},
+  {icon:'💡',title:'Anomaly Rate',val:'26.7% transactions',color:'var(--orange)',desc:'4 out of 15 transactions flagged as anomalies using Isolation Forest algorithm.'},
+  {icon:'💰',title:'Savings Potential',val:'₹8,500/month',color:'var(--green)',desc:'By optimising Food and Shopping, you could save an additional ₹8,500 monthly.'},
+  {icon:'📊',title:'Category Correlation',val:'Transport ↔ Food',color:'var(--purple)',desc:'Pandas analysis shows 78% correlation between transport and food expenses (office days).'},
+];
+
+const badges = [
+  {icon:'🔥',name:'7-Day Streak',earned:true},
+  {icon:'💰',name:'First Save',earned:true},
+  {icon:'🎯',name:'Budget Master',earned:true},
+  {icon:'📱',name:'SMS Sync Pro',earned:true},
+  {icon:'🏆',name:'30-Day Streak',earned:false},
+  {icon:'💎',name:'Zero Splurge',earned:false},
+  {icon:'🚀',name:'Goal Crusher',earned:false},
+  {icon:'🧠',name:'AI Optimiser',earned:false},
+];
+
+const goals = [
+  {name:'Keep food under ₹5,000',current:5850,target:5000,over:true},
+  {name:'Save ₹5,000 minimum',current:5000,target:5000,over:false},
+  {name:'No anomaly transactions',current:4,target:0,over:true},
+  {name:'Stay under monthly budget',current:39079,target:50000,over:false},
+];
+
+// ─── AUTH ─────────────────────────────────────────────────────
+let selectedCat = 'Food';
+let profileEditMode = false;
+
+function switchAuth(mode){
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(mode==='login'?0:1)));
+  document.getElementById('loginForm').style.display=mode==='login'?'block':'none';
+  document.getElementById('registerForm').style.display=mode==='register'?'block':'none';
+}
+
+function fillDemo(){
+  document.getElementById('loginEmail').value='demo@g2sight.ai';
+  document.getElementById('loginPass').value='demo1234';
+}
+
+function doLogin(){
+  const email=document.getElementById('loginEmail').value;
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass){alert('Please fill all fields');return;}
+  const btn=document.getElementById('loginBtn');
+  btn.innerHTML='<span class="spinner"></span> Signing in...';
+  btn.disabled=true;
+  setTimeout(()=>{
+    const resolvedName = email==='demo@g2sight.ai'?'Gayathri Priya':email.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    userData.name=resolvedName;
+    userData.email=email;
+    initApp();
+  },1200);
+}
+
+function doRegister(){
+  const name=document.getElementById('regName').value;
+  const email=document.getElementById('regEmail').value;
+  const pass=document.getElementById('regPass').value;
+  if(!name||!email||!pass){alert('Please fill all fields');return;}
+  userData.name=name;
+  userData.email=email;
+  userData.budget=parseInt(document.getElementById('regBudget').value)||50000;
+  setTimeout(initApp,800);
+}
+
+function doLogout(){
+  closeProfilePanel();
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('app').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('fabBtn').style.display='none';
+  document.getElementById('loginBtn').innerHTML='Sign In →';
+  document.getElementById('loginBtn').disabled=false;
+}
+
+function initApp(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('fabBtn').style.display='flex';
+  const n=userData.name;
+  document.getElementById('userNameDisplay').textContent=n.split(' ')[0];
+  document.getElementById('userInitials').textContent=n.charAt(0).toUpperCase();
+  const h=new Date().getHours();
+  document.getElementById('dashGreeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+' '+n.split(' ')[0]+' 👋';
+  renderAll();
+  populateProfilePanel();
+}
+
+// ─── NAV ──────────────────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='analytics')renderAnalytics();
+  if(id==='sms')renderSMS();
+  if(id==='alerts')renderAlerts();
+  if(id==='gamification')renderGamification();
+  if(id==='transactions')renderTransactions();
+}
+
+// ─── RENDER ───────────────────────────────────────────────────
+function renderAll(){
+  renderStats();
+  renderDashboardCharts();
+  renderCatCards();
+  renderRecentTx();
+  renderAISummary();
+  document.getElementById('addDate').value=new Date().toISOString().split('T')[0];
+}
+
+function renderStats(){
+  const total=transactions.filter(t=>t.cat!=='Savings').reduce((s,t)=>s+t.amount,0);
+  const savings=transactions.filter(t=>t.cat==='Savings').reduce((s,t)=>s+t.amount,0);
+  const anomalies=transactions.filter(t=>t.anomaly).length;
+  const rem=userData.budget-total;
+  document.getElementById('budgetRemaining').textContent=`₹${Math.max(0,rem).toLocaleString('en-IN')} remaining`;
+  document.getElementById('statCards').innerHTML=[
+    {label:'Total Spent',val:'₹'+total.toLocaleString('en-IN'),color:'red',icon:'💸',sub:transactions.length+' transactions',trend:'up',trendVal:'+8% vs last month'},
+    {label:'Budget Remaining',val:'₹'+Math.max(0,rem).toLocaleString('en-IN'),color:'green',icon:'💰',sub:'of ₹'+userData.budget.toLocaleString('en-IN'),trend:'down',trendVal:'78% used'},
+    {label:'Anomalies Detected',val:anomalies,color:'purple',icon:'🔍',sub:'by Isolation Forest ML',trend:'down',trendVal:'High activity'},
+    {label:'Monthly Savings',val:'₹'+savings.toLocaleString('en-IN'),color:'blue',icon:'🏦',sub:'RD installment',trend:'up',trendVal:'On target'},
+  ].map(c=>`
+    <div class="stat-card ${c.color}" onclick="showPage('analytics',document.querySelector('.nav-btn:nth-child(3)'))">
+      <div class="stat-icon">${c.icon}</div>
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value ${c.color}">${c.val}</div>
+      <div class="stat-sub">${c.sub}</div>
+      <div class="stat-trend ${c.trend==='up'?'up':'down'}">${c.trend==='up'?'↑':'↓'} ${c.trendVal}</div>
+    </div>`).join('');
+}
+
+let trendChartInst,catChartInst;
+function renderDashboardCharts(){
+  const tCtx=document.getElementById('trendChart').getContext('2d');
+  if(trendChartInst)trendChartInst.destroy();
+  trendChartInst=new Chart(tCtx,{type:'line',data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar','Apr'],datasets:[
+    {label:'Spending',data:[32000,38000,45000,29000,41000,36000,39079],borderColor:'#4f8eff',backgroundColor:'rgba(79,142,255,0.08)',fill:true,tension:0.4,pointBackgroundColor:'#4f8eff',pointRadius:4,pointHoverRadius:6},
+    {label:'Budget',data:Array(7).fill(BUDGET),borderColor:'rgba(255,107,107,0.4)',borderDash:[5,4],fill:false,pointRadius:0}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ba3c7',font:{size:11},boxWidth:10}}},scales:{x:{ticks:{color:'#5a6285',font:{size:11}},grid:{color:'#1c2338'}},y:{ticks:{color:'#5a6285',font:{size:11},callback:v=>'₹'+Math.round(v/1000)+'k'},grid:{color:'#1c2338'}}}}});
+
+  const cCtx=document.getElementById('catChart').getContext('2d');
+  if(catChartInst)catChartInst.destroy();
+  const catTotals={};
+  transactions.forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount;});
+  const keys=Object.keys(catTotals);
+  catChartInst=new Chart(cCtx,{type:'doughnut',data:{labels:keys,datasets:[{data:Object.values(catTotals),backgroundColor:keys.map(k=>(catConfig[k]||catConfig.Other).color+'cc'),borderColor:'#161c2e',borderWidth:2,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#9ba3c7',font:{size:11},boxWidth:10,padding:8}}},cutout:'65%'}});
+}
+
+function renderCatCards(){
+  const catTotals={};
+  transactions.forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount;});
+  const total=Object.values(catTotals).reduce((s,v)=>s+v,0);
+  document.getElementById('catCards').innerHTML=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>{
+    const cfg=catConfig[cat]||catConfig.Other;
+    const pct=Math.round((amt/total)*100);
+    return `<div class="stat-card" onclick="showCatDetail('${cat}')" style="cursor:pointer;border-left:3px solid ${cfg.color}">
+      <div style="font-size:24px;margin-bottom:8px">${cfg.icon}</div>
+      <div class="stat-label">${cat}</div>
+      <div style="font-size:20px;font-weight:800;color:${cfg.color};margin:4px 0">₹${amt.toLocaleString('en-IN')}</div>
+      <div class="progress-bar-wrap" style="margin-top:8px"><div class="progress-bar-fill" style="width:${pct}%;background:${cfg.color}66"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">${pct}% of total • tap to explore →</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRecentTx(){
+  document.getElementById('recentTxList').innerHTML=`<table class="tx-table"><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr></thead><tbody>`+
+    transactions.slice().reverse().slice(0,6).map(t=>{
+      const cfg=catConfig[t.cat]||catConfig.Other;
+      return `<tr onclick="openTxDetail(${t.id})">
+        <td style="color:var(--text2);font-size:12px">${t.date}</td>
+        <td>${t.desc}${t.anomaly?'<span style="margin-left:6px;font-size:10px;background:rgba(255,107,107,0.12);color:#ff9a9a;padding:2px 6px;border-radius:4px">⚠ Anomaly</span>':''}</td>
+        <td><span class="cat-pill" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${t.cat}</span></td>
+        <td><span class="tx-amount debit">-₹${t.amount.toLocaleString('en-IN')}</span></td>
+      </tr>`;
+    }).join('')+'</tbody></table>';
+}
+
+function renderAISummary(){
+  const total=transactions.reduce((s,t)=>s+(t.cat!=='Savings'?t.amount:0),0);
+  const savings=transactions.filter(t=>t.cat==='Savings').reduce((s,t)=>s+t.amount,0);
+  const anomCount=transactions.filter(t=>t.anomaly).length;
+  const top=Object.entries(transactions.reduce((a,t)=>{a[t.cat]=(a[t.cat]||0)+t.amount;return a},{})).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('aiSummary').innerHTML=`
+    <p>📊 <strong>Spending Summary:</strong> This month you've spent <strong style="color:var(--accent)">₹${total.toLocaleString('en-IN')}</strong> (${Math.round(total/BUDGET*100)}% of ₹${BUDGET.toLocaleString('en-IN')} budget). Your top category is <strong style="color:${(catConfig[top[0]]||catConfig.Other).color}">${top[0]}</strong> at ₹${top[1].toLocaleString('en-IN')}.</p>
+    <p style="margin-top:10px">🔍 <strong>Anomaly Detection:</strong> Scikit-learn Isolation Forest detected <strong style="color:var(--orange)">${anomCount} anomalous transactions</strong> — including a ₹12,500 Amazon purchase and ₹4,200 restaurant bill. These are 2–3× your typical transaction size.</p>
+    <p style="margin-top:10px">🔮 <strong>ML Prediction:</strong> Random Forest regressor predicts approximately <strong style="color:var(--primary)">₹47,200</strong> total by month-end — within budget.</p>
+    <p style="margin-top:10px">💡 <strong>Recommendation:</strong> Reduce dining out by 30% this week to hit your savings goal. You're on a <strong style="color:var(--accent2)">7-day saving streak</strong> — keep it going! 🔥</p>`;
+}
+
+function renderTransactions(){
+  const filter=document.getElementById('txFilter').value;
+  const list=(filter==='all'?transactions:transactions.filter(t=>t.cat===filter)).slice().reverse();
+  document.getElementById('txBody').innerHTML=list.map(t=>{
+    const cfg=catConfig[t.cat]||catConfig.Other;
+    return `<tr onclick="openTxDetail(${t.id})">
+      <td style="color:var(--text2);font-size:13px;white-space:nowrap">${t.date}</td>
+      <td><strong>${t.desc}</strong>${t.note?`<br><span style="font-size:11px;color:var(--text3)">${t.note}</span>`:''}</td>
+      <td><span class="cat-pill" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${t.cat}</span></td>
+      <td><span style="font-size:11px;padding:2px 7px;border-radius:4px;background:${t.src==='SMS'?'rgba(79,142,255,0.1)':'rgba(6,214,160,0.1)'};color:${t.src==='SMS'?'var(--primary)':'var(--green)'}">${t.src}</span></td>
+      <td><span class="tx-amount debit">-₹${t.amount.toLocaleString('en-IN')}</span></td>
+      <td>${t.anomaly?'<span class="anomaly-badge">⚠ Anomaly</span>':'<span class="normal-badge">✓ Normal</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+let weekChartI,predChartI,budgetChartI;
+function renderAnalytics(){
+  setTimeout(()=>{
+    const wCtx=document.getElementById('weekChart').getContext('2d');
+    if(weekChartI)weekChartI.destroy();
+    weekChartI=new Chart(wCtx,{type:'bar',data:{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{label:'Avg Daily Spend',data:[1200,800,1500,950,2100,3800,2400],backgroundColor:['rgba(79,142,255,0.7)','rgba(79,142,255,0.7)','rgba(79,142,255,0.7)','rgba(79,142,255,0.7)','rgba(79,142,255,0.7)','rgba(255,107,107,0.7)','rgba(255,107,107,0.7)'],borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a6285'},grid:{display:false}},y:{ticks:{color:'#5a6285',callback:v=>'₹'+v.toLocaleString('en-IN')},grid:{color:'#1c2338'}}}}});
+    const pCtx=document.getElementById('predChart').getContext('2d');
+    if(predChartI)predChartI.destroy();
+    predChartI=new Chart(pCtx,{type:'line',data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar','Apr 1','Apr 8','Apr 15','Apr 22','Apr 30'],datasets:[
+      {label:'Historical',data:[32000,38000,45000,29000,41000,36000,39079,null,null,null,null],borderColor:'#4f8eff',backgroundColor:'rgba(79,142,255,0.05)',fill:true,tension:0.4,pointRadius:3},
+      {label:'Predicted',data:[null,null,null,null,null,null,39079,41000,43500,44800,47200],borderColor:'#a855f7',borderDash:[5,4],fill:false,tension:0.4,pointRadius:3}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ba3c7',font:{size:11},boxWidth:10}}},scales:{x:{ticks:{color:'#5a6285',font:{size:10}},grid:{color:'#1c2338'}},y:{ticks:{color:'#5a6285',callback:v=>'₹'+Math.round(v/1000)+'k'},grid:{color:'#1c2338'}}}}});
+    const bCtx=document.getElementById('budgetChart').getContext('2d');
+    if(budgetChartI)budgetChartI.destroy();
+    const cats=Object.keys(catConfig).filter(c=>c!=='Other');
+    const catTotals={};transactions.forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount;});
+    budgetChartI=new Chart(bCtx,{type:'bar',data:{labels:cats,datasets:[
+      {label:'Spent',data:cats.map(c=>catTotals[c]||0),backgroundColor:cats.map(c=>(catConfig[c]||catConfig.Other).color+'99'),borderRadius:4},
+      {label:'Budget',data:[8000,5000,10000,3000,4000,20000,5000,10000],backgroundColor:'rgba(255,255,255,0.05)',borderColor:'rgba(255,255,255,0.2)',borderWidth:1,borderRadius:4}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ba3c7',font:{size:11},boxWidth:10}}},scales:{x:{ticks:{color:'#5a6285',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#5a6285',callback:v=>'₹'+Math.round(v/1000)+'k'},grid:{color:'#1c2338'}}}}});
+  },50);
+  const anom=transactions.filter(t=>t.anomaly);
+  document.getElementById('anomalyList').innerHTML=anom.map(t=>{
+    const cfg=catConfig[t.cat]||catConfig.Other;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.1);border-radius:var(--r);margin-bottom:8px;cursor:pointer" onclick="openTxDetail(${t.id})">
+      <span style="font-size:20px">${cfg.icon}</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${t.desc}</div><div style="font-size:11px;color:var(--text2)">${t.date} • ${t.cat}</div></div>
+      <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--accent)">₹${t.amount.toLocaleString('en-IN')}</div><div style="font-size:10px;color:var(--text3)">Isolation Forest</div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('mlInsights').innerHTML=mlInsights.map(i=>`
+    <div class="card-sm" style="display:flex;gap:12px;align-items:flex-start">
+      <div style="font-size:24px">${i.icon}</div>
+      <div><div style="font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:0.5px">${i.title}</div>
+      <div style="font-size:16px;font-weight:800;color:${i.color};margin:3px 0">${i.val}</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.5">${i.desc}</div></div>
+    </div>`).join('');
+}
+
+function renderSMS(){
+  document.getElementById('smsList').innerHTML=smsMessages.map((s,i)=>{
+    const cfg=catConfig[s.cat]||catConfig.Other;
+    return `<div class="sms-card" onclick="openSMSDetail(${i})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <span style="font-size:11px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:0.5px">📱 Bank SMS</span>
+        <span class="cat-pill" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${s.cat}</span>
+      </div>
+      <div class="sms-raw">${s.raw}</div>
+      <div class="sms-extracted">
+        <span class="sms-tag tag-info">₹${s.extracted.amount.toLocaleString('en-IN')}</span>
+        <span class="sms-tag tag-ok">${s.extracted.merchant}</span>
+        <span class="sms-tag" style="background:rgba(168,85,247,0.12);color:#c084fc;border:1px solid rgba(168,85,247,0.2)">${s.extracted.type}</span>
+        <span class="sms-tag" style="background:rgba(155,163,199,0.1);color:var(--text2);border:1px solid var(--border)">${s.extracted.account}</span>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3)">Click to view full extraction details →</div>
+    </div>`;
+  }).join('');
+}
+
+function openSMSDetail(i){
+  const s=smsMessages[i];
+  const cfg=catConfig[s.cat]||catConfig.Other;
+  document.getElementById('txModalContent').innerHTML=`
+    <div class="detail-section"><h4>Raw SMS Message</h4>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-family:var(--mono);font-size:12px;color:var(--text2);line-height:1.6">${s.raw}</div>
+    </div>
+    <div class="detail-section"><h4>NLP Extracted Data</h4>
+      <div class="detail-row"><span class="detail-key">Amount</span><span class="detail-val" style="color:var(--accent)">₹${s.extracted.amount.toLocaleString('en-IN')}</span></div>
+      <div class="detail-row"><span class="detail-key">Merchant</span><span class="detail-val">${s.extracted.merchant}</span></div>
+      <div class="detail-row"><span class="detail-key">Transaction Type</span><span class="detail-val">${s.extracted.type}</span></div>
+      <div class="detail-row"><span class="detail-key">Account</span><span class="detail-val" style="font-family:var(--mono)">${s.extracted.account}</span></div>
+      <div class="detail-row"><span class="detail-key">Auto Category</span><span class="detail-val"><span class="cat-pill" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${s.cat}</span></span></div>
+    </div>
+    <div class="ai-insight-box"><p>🤖 <strong>Flask NLP Parser:</strong> Parsed via regex + merchant keyword classification. Confidence: <strong style="color:var(--green)">94.2%</strong>. Auto-categorised as <strong>${s.cat}</strong>.</p></div>`;
+  document.getElementById('txModal').classList.add('open');
+}
+
+function renderAlerts(){
+  const colorMap={danger:'rgba(255,107,107,0.06)',warn:'rgba(251,146,60,0.06)',info:'rgba(79,142,255,0.06)'};
+  const borderMap={danger:'rgba(255,107,107,0.2)',warn:'rgba(251,146,60,0.2)',info:'rgba(79,142,255,0.2)'};
+  document.getElementById('alertsList').innerHTML=alerts.map(a=>`
+    <div class="alert-item" style="background:${colorMap[a.type]};border-color:${borderMap[a.type]}">
+      <div class="alert-icon-wrap" style="background:${colorMap[a.type]}">${a.icon}</div>
+      <div class="alert-content" style="flex:1"><h4>${a.title}</h4><p>${a.msg}</p><div class="alert-time">${a.time}</div></div>
+    </div>`).join('');
+}
+
+function renderGamification(){
+  document.getElementById('streakNum').textContent=userData.streak;
+  document.getElementById('badgeGrid').innerHTML=badges.map(b=>`
+    <div class="badge-item ${b.earned?'earned':''}">
+      <span class="badge-emoji">${b.icon}</span>
+      <div class="badge-name">${b.name}</div>
+    </div>`).join('');
+  document.getElementById('goalsList').innerHTML=goals.map(g=>{
+    const pct=Math.min(100,Math.round((g.current/Math.max(g.target,1))*100));
+    return `<div style="margin-bottom:14px">
+      <div class="flex-between" style="margin-bottom:4px">
+        <span style="font-size:13px">${g.name}</span>
+        <span style="font-size:12px;color:${g.over?'var(--accent)':'var(--green)'}">${g.over?'⚠ Over':'✓ OK'}</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:${g.over?'var(--accent)':'var(--green)'}"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px">₹${g.current.toLocaleString('en-IN')} / ₹${g.target.toLocaleString('en-IN')}</div>
+    </div>`;
+  }).join('');
+}
+
+function showCatDetail(cat){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const catTx=transactions.filter(t=>t.cat===cat);
+  const total=catTx.reduce((s,t)=>s+t.amount,0);
+  const cfg=catConfig[cat]||catConfig.Other;
+  const avg=catTx.length?Math.round(total/catTx.length):0;
+  const anomalies=catTx.filter(t=>t.anomaly);
+  document.getElementById('catDetailContent').innerHTML=`
+    <button class="back-btn" onclick="showPage('dashboard',document.querySelector('.nav-btn'))">← Back to Dashboard</button>
+    <div class="cat-detail-header">
+      <div class="cat-detail-icon" style="background:${cfg.bg}">${cfg.icon}</div>
+      <div><h2 style="font-size:24px;font-weight:800">${cat}</h2><p style="color:var(--text2);font-size:14px">${catTx.length} transactions this month</p></div>
+    </div>
+    <div class="grid4 section-gap">
+      <div class="card-sm" style="border-left:3px solid ${cfg.color}"><div class="stat-label">Total Spent</div><div style="font-size:24px;font-weight:800;color:${cfg.color}">₹${total.toLocaleString('en-IN')}</div></div>
+      <div class="card-sm"><div class="stat-label">Avg per Transaction</div><div style="font-size:24px;font-weight:800">₹${avg.toLocaleString('en-IN')}</div></div>
+      <div class="card-sm"><div class="stat-label">Anomalies</div><div style="font-size:24px;font-weight:800;color:${anomalies.length?'var(--accent)':'var(--green)'}">${anomalies.length}</div></div>
+      <div class="card-sm"><div class="stat-label">SMS vs Manual</div><div style="font-size:24px;font-weight:800">${catTx.filter(t=>t.src==='SMS').length}/${catTx.filter(t=>t.src==='Manual').length}</div></div>
+    </div>
+    <div class="card section-gap"><div style="height:180px"><canvas id="catDetailChart"></canvas></div></div>
+    <div class="card section-gap">
+      <div class="card-title">${cfg.icon} ${cat} Transactions</div>
+      <table class="tx-table"><thead><tr><th>Date</th><th>Description</th><th>Source</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody>${[...catTx].reverse().map(t=>`
+        <tr onclick="openTxDetail(${t.id})">
+          <td style="color:var(--text2);font-size:13px">${t.date}</td>
+          <td>${t.desc}${t.note?`<br><span style="font-size:11px;color:var(--text3)">${t.note}</span>`:''}</td>
+          <td><span style="font-size:11px;padding:2px 7px;border-radius:4px;background:${t.src==='SMS'?'rgba(79,142,255,0.1)':'rgba(6,214,160,0.1)'};color:${t.src==='SMS'?'var(--primary)':'var(--green)'}">${t.src}</span></td>
+          <td><span class="tx-amount debit">-₹${t.amount.toLocaleString('en-IN')}</span></td>
+          <td>${t.anomaly?'<span class="anomaly-badge">⚠ Anomaly</span>':'<span class="normal-badge">✓ Normal</span>'}</td>
+        </tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="ai-insight-box"><p>🤖 <strong>AI Analysis for ${cat}:</strong> Your ${cat} spending of ₹${total.toLocaleString('en-IN')} this month ${anomalies.length?`includes <strong style="color:var(--accent)">${anomalies.length} anomalous transaction(s)</strong> detected by Isolation Forest.`:' is within normal range.'} Avg per transaction: ₹${avg.toLocaleString('en-IN')}. ${avg>3000?'Consider reviewing high-value transactions.':'Spending pattern looks healthy.'}</p></div>`;
+  document.getElementById('page-catdetail').classList.add('active');
+  setTimeout(()=>{
+    const ctx=document.getElementById('catDetailChart').getContext('2d');
+    new Chart(ctx,{type:'bar',data:{labels:[...catTx].map(t=>t.desc.substring(0,14)+'…'),datasets:[{data:[...catTx].map(t=>t.amount),backgroundColor:[...catTx].map(t=>t.anomaly?'rgba(255,107,107,0.7)':cfg.color+'99'),borderRadius:5,label:cat}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#5a6285',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#5a6285',callback:v=>'₹'+v.toLocaleString('en-IN')},grid:{color:'#1c2338'}}}}});
+  },50);
+}
+
+function openTxDetail(id){
+  const t=transactions.find(x=>x.id===id);
+  if(!t)return;
+  const cfg=catConfig[t.cat]||catConfig.Other;
+  const avgCat=Math.round(transactions.filter(x=>x.cat===t.cat).reduce((s,x)=>s+x.amount,0)/transactions.filter(x=>x.cat===t.cat).length);
+  const ratio=(t.amount/avgCat).toFixed(1);
+  document.getElementById('txModalContent').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;padding:16px;background:${cfg.bg};border-radius:var(--r2);margin-bottom:20px">
+      <div style="font-size:36px">${cfg.icon}</div>
+      <div><div style="font-size:18px;font-weight:800">${t.desc}</div><div style="font-size:13px;color:var(--text2);margin-top:2px">${t.cat} • ${t.date}</div></div>
+      <div style="margin-left:auto;text-align:right"><div style="font-size:24px;font-weight:900;color:var(--accent)">₹${t.amount.toLocaleString('en-IN')}</div></div>
+    </div>
+    <div class="detail-section"><h4>Transaction Details</h4>
+      <div class="detail-row"><span class="detail-key">Transaction ID</span><span class="detail-val" style="font-family:var(--mono);font-size:12px">TXN${String(t.id).padStart(8,'0')}</span></div>
+      <div class="detail-row"><span class="detail-key">Date</span><span class="detail-val">${t.date}</span></div>
+      <div class="detail-row"><span class="detail-key">Category</span><span class="detail-val"><span class="cat-pill" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${t.cat}</span></span></div>
+      <div class="detail-row"><span class="detail-key">Source</span><span class="detail-val"><span style="padding:3px 10px;border-radius:20px;font-size:12px;background:${t.src==='SMS'?'rgba(79,142,255,0.12)':'rgba(6,214,160,0.12)'};color:${t.src==='SMS'?'var(--primary)':'var(--green)'}">${t.src==='SMS'?'📱 Auto-extracted from SMS':'✏️ Manual Entry'}</span></span></div>
+      ${t.note?`<div class="detail-row"><span class="detail-key">Note</span><span class="detail-val">${t.note}</span></div>`:''}
+    </div>
+    <div class="detail-section"><h4>ML Analysis</h4>
+      <div class="detail-row"><span class="detail-key">Anomaly Status</span><span class="detail-val">${t.anomaly?'<span class="anomaly-badge">⚠ Flagged by Isolation Forest</span>':'<span class="normal-badge">✓ Normal Transaction</span>'}</span></div>
+      <div class="detail-row"><span class="detail-key">vs Category Average</span><span class="detail-val" style="color:${parseFloat(ratio)>1.5?'var(--accent)':'var(--green)'}">${ratio}x (avg ₹${avgCat.toLocaleString('en-IN')})</span></div>
+      <div class="detail-row"><span class="detail-key">Risk Score</span><span class="detail-val" style="color:${t.anomaly?'var(--accent)':'var(--green)'}">${t.anomaly?Math.round(70+Math.random()*25):Math.round(10+Math.random()*20)}/100</span></div>
+    </div>
+    ${t.anomaly?`<div class="ai-insight-box"><p>⚠️ <strong>Anomaly Alert:</strong> This transaction of ₹${t.amount.toLocaleString('en-IN')} is <strong>${ratio}x higher</strong> than your average ${t.cat} spend of ₹${avgCat.toLocaleString('en-IN')}. Isolation Forest flagged this with high confidence. Please verify.</p></div>`:
+    `<div class="ai-insight-box"><p>✅ <strong>Normal Transaction:</strong> This ₹${t.amount.toLocaleString('en-IN')} ${t.cat} expense is consistent with your spending pattern. No unusual activity detected.</p></div>`}`;
+  document.getElementById('txModal').classList.add('open');
+}
+
+// ─── ADD EXPENSE ──────────────────────────────────────────────
+function selCat(el){
+  document.querySelectorAll('.cat-opt').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedCat=el.dataset.cat;
+}
+function openAddModal(){document.getElementById('addModal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function submitExpense(){
+  const amt=parseFloat(document.getElementById('addAmt').value);
+  const desc=document.getElementById('addDesc').value.trim();
+  const date=document.getElementById('addDate').value;
+  const note=document.getElementById('addNote').value.trim();
+  if(!amt||amt<=0){alert('Please enter a valid amount');return;}
+  if(!desc){alert('Please enter a description');return;}
+  const catTx=transactions.filter(t=>t.cat===selectedCat);
+  const avgCat=catTx.length?catTx.reduce((s,t)=>s+t.amount,0)/catTx.length:amt;
+  const isAnom=amt>avgCat*2.5;
+  transactions.push({id:Date.now(),date:date||new Date().toISOString().split('T')[0],desc,cat:selectedCat,amount:amt,src:'Manual',note,anomaly:isAnom});
+  closeModal('addModal');
+  document.getElementById('addAmt').value='';
+  document.getElementById('addDesc').value='';
+  document.getElementById('addNote').value='';
+  renderAll();
+  populateProfilePanel();
+  if(isAnom)setTimeout(()=>alert(`⚠️ Anomaly Detected!\n\nThis transaction (₹${amt.toLocaleString('en-IN')}) is ${(amt/avgCat).toFixed(1)}x your average ${selectedCat} spend. Flagged for review.`),200);
+}
+
+// ─── PROFILE PANEL ────────────────────────────────────────────
+function openProfilePanel(){
+  populateProfilePanel();
+  document.getElementById('profileOverlay').classList.add('open');
+  document.getElementById('profilePanel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeProfilePanel(){
+  document.getElementById('profileOverlay').classList.remove('open');
+  document.getElementById('profilePanel').classList.remove('open');
+  document.body.style.overflow='';
+  // reset edit mode if open
+  if(profileEditMode){cancelProfileEdit();}
+}
+
+function populateProfilePanel(){
+  // Header
+  const initials=userData.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('ppAvatarInitials').textContent=initials;
+  document.getElementById('ppDisplayName').textContent=userData.name;
+  document.getElementById('ppDisplayEmail').textContent=userData.email;
+  document.getElementById('ppDisplaySince').textContent=`Member since ${userData.memberSince} • ${userData.location}`;
+
+  // Top bar display
+  document.getElementById('userInitials').textContent=initials.charAt(0);
+  document.getElementById('userNameDisplay').textContent=userData.name.split(' ')[0];
+
+  // View mode fields
+  document.getElementById('ppViewName').textContent=userData.name;
+  document.getElementById('ppViewEmail').textContent=userData.email;
+  document.getElementById('ppViewPhone').textContent=userData.phone;
+  document.getElementById('ppViewDob').textContent=userData.dob;
+  document.getElementById('ppViewLocation').textContent=userData.location;
+  document.getElementById('ppViewOccupation').textContent=userData.occupation;
+  document.getElementById('ppViewPan').textContent=userData.pan;
+
+  // Edit inputs pre-fill
+  document.getElementById('ppEditName').value=userData.name;
+  document.getElementById('ppEditEmail').value=userData.email;
+  document.getElementById('ppEditPhone').value=userData.phone;
+  document.getElementById('ppEditDob').value=userData.dob;
+  document.getElementById('ppEditLocation').value=userData.location;
+  document.getElementById('ppEditOccupation').value=userData.occupation;
+
+  // Financial stats
+  const total=transactions.filter(t=>t.cat!=='Savings').reduce((s,t)=>s+t.amount,0);
+  const savings=transactions.filter(t=>t.cat==='Savings').reduce((s,t)=>s+t.amount,0);
+  const anomalies=transactions.filter(t=>t.anomaly).length;
+  const pct=Math.round((total/userData.budget)*100);
+  document.getElementById('ppStatSpent').textContent='₹'+Math.round(total/1000)+'k';
+  document.getElementById('ppStatTx').textContent=transactions.length;
+  document.getElementById('ppSpentVal').textContent='₹'+total.toLocaleString('en-IN');
+  document.getElementById('ppSavedVal').textContent='₹'+savings.toLocaleString('en-IN');
+  document.getElementById('ppBudgetVal').textContent='₹'+userData.budget.toLocaleString('en-IN');
+  document.getElementById('ppAnomalyVal').textContent=anomalies+' flagged';
+  document.getElementById('ppBudgetPct').textContent=pct+'%';
+  document.getElementById('ppBudgetBar').style.width=Math.min(pct,100)+'%';
+  document.getElementById('ppBudgetBar').style.background=pct>80?'linear-gradient(90deg,var(--orange),var(--accent))':'linear-gradient(90deg,var(--primary),var(--green))';
+
+  // Category mini breakdown
+  const catTotals={};
+  transactions.filter(t=>t.cat!=='Savings').forEach(t=>{catTotals[t.cat]=(catTotals[t.cat]||0)+t.amount;});
+  const topCats=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const grandTotal=topCats.reduce((s,[,v])=>s+v,0);
+  document.getElementById('ppCatBreakdown').innerHTML=topCats.map(([cat,amt])=>{
+    const cfg=catConfig[cat]||catConfig.Other;
+    const p=Math.round((amt/grandTotal)*100);
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <span style="font-size:14px;width:20px">${cfg.icon}</span>
+      <span style="font-size:12px;color:var(--text2);width:80px;flex-shrink:0">${cat}</span>
+      <div style="flex:1;background:var(--bg3);border-radius:20px;height:5px;overflow:hidden">
+        <div style="width:${p}%;height:100%;background:${cfg.color};border-radius:20px"></div>
+      </div>
+      <span style="font-size:11px;font-weight:700;color:var(--text);min-width:52px;text-align:right">₹${Math.round(amt/1000).toLocaleString()}k</span>
+    </div>`;
+  }).join('');
+
+  // Activity log
+  const activityLog=[
+    {dot:'var(--green)',text:'Signed in successfully',time:'Today 9:41 AM'},
+    {dot:'var(--accent)',text:'Anomaly flagged: HDFC CC Bill ₹15,000',time:'Apr 8, 10:00 AM'},
+    {dot:'var(--primary)',text:'SMS parsed: Swiggy ₹320',time:'Apr 6, 8:30 AM'},
+    {dot:'var(--accent2)',text:'Saving streak reached 7 days 🔥',time:'Apr 6, 6:00 AM'},
+    {dot:'var(--green)',text:'SBI RD auto-debit ₹5,000 detected',time:'Apr 6, 10:15 AM'},
+    {dot:'var(--purple)',text:'ML prediction updated for April',time:'Apr 5, 9:00 AM'},
+  ];
+  document.getElementById('ppActivityLog').innerHTML=activityLog.map(a=>`
+    <div class="pp-activity-item">
+      <div class="pp-activity-dot" style="background:${a.dot}"></div>
+      <div class="pp-activity-text">${a.text}</div>
+      <div class="pp-activity-time">${a.time}</div>
+    </div>`).join('');
+}
+
+function toggleProfileEdit(){
+  profileEditMode=true;
+  document.getElementById('ppViewMode').style.display='none';
+  document.getElementById('ppEditMode').style.display='block';
+  document.getElementById('ppEditBtn').style.display='none';
+  document.getElementById('ppSaveBtn').style.display='inline-block';
+}
+
+function saveProfileEdit(){
+  userData.name=document.getElementById('ppEditName').value||userData.name;
+  userData.email=document.getElementById('ppEditEmail').value||userData.email;
+  userData.phone=document.getElementById('ppEditPhone').value||userData.phone;
+  userData.dob=document.getElementById('ppEditDob').value||userData.dob;
+  userData.location=document.getElementById('ppEditLocation').value||userData.location;
+  userData.occupation=document.getElementById('ppEditOccupation').value||userData.occupation;
+  cancelProfileEdit();
+  populateProfilePanel();
+  // show confirmation
+  const btn=document.getElementById('ppSaveBtn');
+  btn.textContent='✓ Saved!';
+  setTimeout(()=>{btn.textContent='💾 Save';},1500);
+}
+
+function cancelProfileEdit(){
+  profileEditMode=false;
+  document.getElementById('ppViewMode').style.display='block';
+  document.getElementById('ppEditMode').style.display='none';
+  document.getElementById('ppEditBtn').style.display='inline-block';
+  document.getElementById('ppSaveBtn').style.display='none';
+}
+
+function togglePref(el){el.classList.toggle('on');}
+
+function exportData(){
+  const data={user:userData,transactions,exportedAt:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='g2sight_data_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+}
+
+function confirmDelete(){
+  if(confirm('⚠️ This will permanently delete your account and all data. This cannot be undone.\n\nAre you sure?')){
+    alert('Account deletion request submitted. You will receive a confirmation email.');
+  }
+}
+
+// ─── SMS FEED ─────────────────────────────────────────────────
+const smsSamples=[
+  'SBI: A/c XX4523 debited Rs.850 on 01-Apr-26 by Saravana Bhavan UPI',
+  'HDFC: Rs.12,500 debited from A/c XX1289 — Amazon Pay UPI',
+  'ICICI: Electricity bill Rs.2,200 paid to BESCOM on 03-Apr',
+  'Axis Bank: Rs.3,000 debited at HP Petrol Pump on 04-Apr',
+  'SBI: UPI payment Rs.4,200 to Park Sheraton Restaurant',
+];
+let smsIdx=0;
+function animateSMSFeed(){
+  const el=document.getElementById('smsFeedLive');
+  if(!el)return;
+  const item=document.createElement('div');
+  item.className='sms-item';item.style.opacity='0';
+  item.textContent=smsSamples[smsIdx%smsSamples.length];smsIdx++;
+  el.insertBefore(item,el.firstChild);
+  setTimeout(()=>{item.style.transition='opacity 0.4s';item.style.opacity='1';},50);
+  if(el.children.length>3)el.removeChild(el.lastChild);
+}
+setInterval(animateSMSFeed,2200);
+animateSMSFeed();
+
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');});
+});
+</script>
+</body>
+</html>
