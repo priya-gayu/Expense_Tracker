@@ -82,7 +82,7 @@ Traditional expense trackers only record transactions. This project goes beyond 
 ## 🛠️ Tech Stack
 
 ### 💻 Frontend
-- React / Flutter (for mobile app UI)
+- React / Flutter 
 
 ### ⚙️ Backend
 - Python (Flask / FastAPI)
@@ -92,7 +92,7 @@ Traditional expense trackers only record transactions. This project goes beyond 
 - Pandas, NumPy
 
 ### 📊 Database
-- SQLite / Firebase / MongoDB
+- MySQL
 
 ### 📱 Integrations
 - SMS Access API (Android)
